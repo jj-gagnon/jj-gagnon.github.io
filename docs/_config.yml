@@ -77,4 +77,8 @@ navigation:
       - name: Java Fever
         link: ./java_fever.html
       - name: The Tower and Hill
-        link: ./the_tower_and_hill.html        
+        link: ./the_tower_and_hill.html
+  - name: Web Development
+    sublist:
+      - name: WordPress
+        link: ./wordpress.html
