@@ -3,9 +3,7 @@ layout: default
 ---
 
 
-- [Three.js Demo](/p5_test/)
 
-<a href="p5_test" target="_blank">Visit Example Website</a>
 
 # The Anteroom
 
