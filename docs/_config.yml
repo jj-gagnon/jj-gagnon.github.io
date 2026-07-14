@@ -59,7 +59,6 @@ plugins:
 
 navigation:
   - name: Photography
-    link: ./the_anteroom.html
     sublist:
       - name: The Anteroom
         link: ./the_anteroom.html
@@ -68,14 +67,12 @@ navigation:
       - name: The Space Between
         link: ./the_space_between.html
   - name: Sculpture
-    link: ./timelessness.html          
     sublist:
       - name: Timelessness
         link: ./timelessness.html        
       - name: Wiggle Room
         link: ./wiggle_room.html        
   - name: Generative Art
-    link: ./java_fever.html
     sublist:
       - name: Java Fever
         link: ./java_fever.html
