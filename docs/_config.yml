@@ -58,7 +58,13 @@ plugins:
 #   - vendor/ruby/
 
 navigation:
+  - name: Web Development
+    link: ./wordpress.html
+    sublist:
+      - name: WordPress
+        link: ./wordpress.html
   - name: Photography
+    link: ./the_anteroom.html
     sublist:
       - name: The Anteroom
         link: ./the_anteroom.html
@@ -67,18 +73,17 @@ navigation:
       - name: The Space Between
         link: ./the_space_between.html
   - name: Sculpture
+    link: ./timelessness.html        
     sublist:
       - name: Timelessness
         link: ./timelessness.html        
       - name: Wiggle Room
         link: ./wiggle_room.html        
   - name: Generative Art
+    link: ./java_fever.html
     sublist:
       - name: Java Fever
         link: ./java_fever.html
       - name: The Tower and Hill
         link: ./the_tower_and_hill.html
-  - name: Web Development
-    sublist:
-      - name: WordPress
-        link: ./wordpress.html
+  
