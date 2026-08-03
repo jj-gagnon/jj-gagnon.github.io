@@ -1,4 +1,22 @@
 
+
+/*
+no AA -> 125**2
+SSAA -> 33**2 at sample level 4 (what is unbiased)
+smaa -> 120**2 but doesnt look good. has no settings. 
+TAA -> 120**2 doesnt look goood. isnt for this scenario
+
+okay there are other things to try but they are compicated. 
+smaa from another library
+fxaa
+
+
+
+
+
+
+*/
+
 import * as THREE from 'three';
 
 
@@ -6,9 +24,10 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { SSAARenderPass } from 'three/addons/postprocessing/SSAARenderPass.js';
-
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+import { TAARenderPass } from 'three/addons/postprocessing/TAARenderPass.js';
 import Stats from 'three/addons/libs/stats.module.js';
-
+// import { color } from 'three/src/nodes/tsl/TSLCore.js';
 
 
 function resizeRendererToDisplaySize(renderer) {
@@ -24,26 +43,25 @@ function resizeRendererToDisplaySize(renderer) {
 
 function main() {
 
+
     const stats = new Stats();
     document.body.appendChild(stats.dom);
-
 
     const canvas = document.querySelector('#c');
     const renderer = new THREE.WebGLRenderer(
         {
             canvas: document.querySelector("canvas"),
             // precision: "lowp",
-            // antialias: true,
-            // maxSamples: 2**100
+            // antialias: false,
+            // maxSamples: 32
         });
     resizeRendererToDisplaySize(renderer)
 
 
-    let fov = 20
-    //  let fov =10
-    // let fov = 150
-    // let fov = 40
+    let fov = 30
     const aspect = renderer.domElement.width / renderer.domElement.height; // the canvas default
+
+
     const near = 0.1;
     const far = 10000000;
     const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
@@ -51,7 +69,7 @@ function main() {
     // let orth_h = 10/2
     // let orth_w = orth_h * aspect
     // const camera = new THREE.OrthographicCamera(orth_w,orth_w*-1,orth_h,orth_h*-1,0.1, 100000)
-    // const camera = new THREE.OrthographicCamera()
+
 
 
     let z = 10 / (2 * Math.tan(THREE.MathUtils.degToRad(fov * 0.5)))
@@ -75,59 +93,86 @@ function main() {
         // scene.add(light);
 
     }
-    // const box_size = 2 ;
-    const box_size = 0.5;
-    let num_cubes = 100
-    // let r = 0.015
-    let r = 0.04
+    var total_pixels = innerHeight * innerWidth
+    console.log("total pixels")
+    console.log(total_pixels)
+
+
+    const box_size = 0.3;
+    // let num_cubes = Math.pow(100
+    // , 2)
+    let num_cubes = total_pixels / 55
+    let r = 40
 
     const geometry = new THREE.BoxGeometry(box_size, box_size, box_size);
 
-    // const material = new THREE.MeshPhongMaterial({ color: 0x44aa88 }); // greenish blue
+    
     const material = new THREE.MeshNormalMaterial(); // greenish blue
-    // material.color.set(1,1,1)
-    // material.dithering = true // dont need this for NormalMaterial
-    const cube = new THREE.Mesh(geometry, material);
+    // const material = new THREE.MeshBasicMaterial({color: 0x00ff88}); // greenish blue
+    
+    // const cube = new THREE.Mesh(geometry, material);
+    let i_cubes = new THREE.InstancedMesh(geometry, material, num_cubes)
+    scene.add(i_cubes)
+
+    let dummy = new THREE.Object3D()
 
     let new_cube
     for (let i = 0; i < num_cubes; i++) {
-        for (let j = 0; j < num_cubes; j++) {
 
-            new_cube = cube.clone()
-            // new_cube.translateX((width / num_cubes) * i)
-            // new_cube.translateY((height / num_cubes) * j * -1)
-            new_cube.translateX(Math.random() * width - width / 2)
-            new_cube.translateY(Math.random() * height - height / 2)
+        dummy.matrix.identity().decompose(dummy.position, dummy.quaternion, dummy.scale)
 
-            // let s = THREE.MathUtils.randFloat(0.1, 1)
-            // new_cube.scale.setScalar(s)
-            // new_cube.translateZ(((box_size*s) - box_size) / -2)
+        // new_cube = cube.clone()
+        // new_cube.translateX((width / num_cubes) * i)
+        // new_cube.translateY((height / num_cubes) * j * -1)
+        dummy.translateX(Math.random() * width - width / 2)
+        dummy.translateY(Math.random() * height - height / 2)
+        dummy.updateMatrix()
 
-            scene.add(new_cube);
+        i_cubes.setMatrixAt(i, dummy.matrix)
 
-        }
     }
+    dummy.matrix.identity().decompose(dummy.position, dummy.quaternion, dummy.scale)
+    i_cubes.setMatrixAt(0, dummy.matrix)
+
+
+
+    // let s = THREE.MathUtils.randFloat(0.1, 1)
+    // new_cube.scale.setScalar(s)
+    // new_cube.translateZ(((box_size*s) - box_size) / -2)
+
+    // scene.add(new_cube);
+
+
+
 
 
     const composer = new EffectComposer(renderer);
-    // composer.setPixelRatio( 1 )
-    // composer.addPass( new RenderPass( scene, camera ) );
 
-    const ssaaRenderPass = new SSAARenderPass(scene, camera);
+
+    const ssaaRenderPass = new SSAARenderPass(scene, camera); // SSAA
     composer.addPass(ssaaRenderPass);
-
     ssaaRenderPass.sampleLevel = 4
     ssaaRenderPass.unbiased = true
-
     const outputPass = new OutputPass();
     composer.addPass(outputPass);
-    // console.log('jj')
-    // console.log('jj')
+
+    // composer.addPass(new RenderPass(scene, camera));
+    // let smaaPass = new SMAAPass();
+    // composer.addPass(smaaPass);
+    // const outputPass = new OutputPass();
+    // composer.addPass(outputPass);
+
+    // const TaaRenderPass = new TAARenderPass(scene, camera); // TAA
+    // composer.addPass(TaaRenderPass);
+    // const outputPass = new OutputPass();
+    // composer.addPass(outputPass);
 
 
+    // renderer.shadowMap.enabled = false;
+    renderer.setPixelRatio(1);
 
-    // let material_red = material.clone()
-    // material_red.color.set(1,0,0)
+
+    let matrix = new THREE.Matrix4()
 
 
 
@@ -135,33 +180,28 @@ function main() {
 
 
     function render(time) {
-
         stats.update()
 
         time *= 0.001; // convert time to seconds
+        let rot = time / r
+        for (let i = 0; i < num_cubes; i++) {
 
-        for (let i = 0; i < scene.children.length; i++) {
-            if (false) {
+            i_cubes.getMatrixAt(i, matrix);
+            matrix.decompose(dummy.position, dummy.rotation, dummy.scale);
 
-                scene.children[i].rotation.x = time * r * 4
-                scene.children[i].material = material_red
-            } else {
-                let i_factor = 0
+            // dummy.rotation.x = rot
+            // dummy.rotation.y = rot * 1.5
+            // dummy.rotation.z = rot * 2
 
-                // i_factor = THREE.MathUtils.mapLinear(
-                // Math.sin(time*0.25),
-                // -1, 1,
-                // 0,
-                // 0.0008
-                // ) * i
+            dummy.rotation.set(rot, rot * 1.5, rot * 3)
 
-                scene.children[i].rotation.x = time * r * 1.5 + i_factor
-                scene.children[i].rotation.y = time * r * 3 + i_factor
-                scene.children[i].rotation.z = time * r + i_factor
-            }
+            dummy.updateMatrix();
+            i_cubes.setMatrixAt(i, dummy.matrix);
+
+            // rot += 0.000001
+
         }
-        // cube.rotation.x = time;
-        // cube.rotation.y = time;
+        i_cubes.instanceMatrix.needsUpdate = true;
 
         renderer.render(scene, camera);
         // composer.render()
