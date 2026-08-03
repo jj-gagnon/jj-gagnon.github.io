@@ -86,4 +86,9 @@ navigation:
         link: ./java_fever.html
       - name: The Tower and Hill
         link: ./the_tower_and_hill.html
+  - name: JavaScript
+    link: ./java_script.html
+    sublist:
+      - name: JavaScript
+        link: ./java_script.html
   

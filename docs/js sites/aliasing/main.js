@@ -1,0 +1,204 @@
+
+import * as THREE from 'three';
+
+
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { SSAARenderPass } from 'three/addons/postprocessing/SSAARenderPass.js';
+
+import Stats from 'three/addons/libs/stats.module.js';
+
+
+
+function resizeRendererToDisplaySize(renderer) {
+    const canvas = renderer.domElement;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    const needResize = canvas.width !== width || canvas.height !== height;
+    if (needResize) {
+        renderer.setSize(width, height, false);
+    }
+    return needResize;
+}
+
+function main() {
+
+    const stats = new Stats();
+    document.body.appendChild(stats.dom);
+
+
+    const canvas = document.querySelector('#c');
+    const renderer = new THREE.WebGLRenderer(
+        {
+            canvas: document.querySelector("canvas"),
+            // precision: "lowp",
+            // antialias: true,
+            // maxSamples: 2**100
+        });
+    resizeRendererToDisplaySize(renderer)
+
+
+    let fov = 20
+    //  let fov =10
+    // let fov = 150
+    // let fov = 40
+    const aspect = renderer.domElement.width / renderer.domElement.height; // the canvas default
+    const near = 0.1;
+    const far = 10000000;
+    const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+
+    // let orth_h = 10/2
+    // let orth_w = orth_h * aspect
+    // const camera = new THREE.OrthographicCamera(orth_w,orth_w*-1,orth_h,orth_h*-1,0.1, 100000)
+    // const camera = new THREE.OrthographicCamera()
+
+
+    let z = 10 / (2 * Math.tan(THREE.MathUtils.degToRad(fov * 0.5)))
+    console.log(z)
+    camera.position.z = z
+
+
+    let height = 10
+    let width = height * aspect
+
+
+    const scene = new THREE.Scene();
+
+    {
+
+        const color = 0xFFFFFF;
+        const intensity = 3;
+        // const light = new THREE.DirectionalLight(color, intensity); //dont need this for NormalMaterial
+        // const light = new THREE.(color, intensity);
+        // light.position.set(- 1, 2, 4);
+        // scene.add(light);
+
+    }
+    // const box_size = 2 ;
+    const box_size = 0.5;
+    let num_cubes = 100
+    // let r = 0.015
+    let r = 0.04
+
+    const geometry = new THREE.BoxGeometry(box_size, box_size, box_size);
+
+    // const material = new THREE.MeshPhongMaterial({ color: 0x44aa88 }); // greenish blue
+    const material = new THREE.MeshNormalMaterial(); // greenish blue
+    // material.color.set(1,1,1)
+    // material.dithering = true // dont need this for NormalMaterial
+    const cube = new THREE.Mesh(geometry, material);
+
+    let new_cube
+    for (let i = 0; i < num_cubes; i++) {
+        for (let j = 0; j < num_cubes; j++) {
+
+            new_cube = cube.clone()
+            // new_cube.translateX((width / num_cubes) * i)
+            // new_cube.translateY((height / num_cubes) * j * -1)
+            new_cube.translateX(Math.random() * width - width / 2)
+            new_cube.translateY(Math.random() * height - height / 2)
+
+            // let s = THREE.MathUtils.randFloat(0.1, 1)
+            // new_cube.scale.setScalar(s)
+            // new_cube.translateZ(((box_size*s) - box_size) / -2)
+
+            scene.add(new_cube);
+
+        }
+    }
+
+
+    const composer = new EffectComposer(renderer);
+    // composer.setPixelRatio( 1 )
+    // composer.addPass( new RenderPass( scene, camera ) );
+
+    const ssaaRenderPass = new SSAARenderPass(scene, camera);
+    composer.addPass(ssaaRenderPass);
+
+    ssaaRenderPass.sampleLevel = 4
+    ssaaRenderPass.unbiased = true
+
+    const outputPass = new OutputPass();
+    composer.addPass(outputPass);
+    // console.log('jj')
+    // console.log('jj')
+
+
+
+    // let material_red = material.clone()
+    // material_red.color.set(1,0,0)
+
+
+
+    resizeCanvasToDisplaySize();
+
+
+    function render(time) {
+
+        stats.update()
+
+        time *= 0.001; // convert time to seconds
+
+        for (let i = 0; i < scene.children.length; i++) {
+            if (false) {
+
+                scene.children[i].rotation.x = time * r * 4
+                scene.children[i].material = material_red
+            } else {
+                let i_factor = 0
+
+                // i_factor = THREE.MathUtils.mapLinear(
+                // Math.sin(time*0.25),
+                // -1, 1,
+                // 0,
+                // 0.0008
+                // ) * i
+
+                scene.children[i].rotation.x = time * r * 1.5 + i_factor
+                scene.children[i].rotation.y = time * r * 3 + i_factor
+                scene.children[i].rotation.z = time * r + i_factor
+            }
+        }
+        // cube.rotation.x = time;
+        // cube.rotation.y = time;
+
+        renderer.render(scene, camera);
+        // composer.render()
+
+        requestAnimationFrame(render);
+
+    }
+
+    requestAnimationFrame(render);
+
+
+
+
+
+
+
+
+
+
+
+    function resizeCanvasToDisplaySize() {
+        const canvas = renderer.domElement;
+        // look up the size the canvas is being displayed
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+
+        // adjust displayBuffer size to match
+        if (canvas.width !== width || canvas.height !== height) {
+            // you must pass false here or three.js sadly fights the browser
+            renderer.setSize(width, height, false);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+
+            // update any render target sizes here
+        }
+    }
+
+}
+
+main();
